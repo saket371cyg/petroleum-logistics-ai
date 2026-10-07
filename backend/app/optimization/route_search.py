@@ -12,16 +12,33 @@ import heapq
 from typing import Dict, List, Tuple
 
 
-def build_corridor_graph(distance_km: float) -> Tuple[Dict[str, List[Tuple[str, float]]], Dict[str, float]]:
+def build_corridor_graph(
+    distance_km: float,
+    dealer_location: str = "inland",
+    route_profile: str = "default",
+) -> Tuple[Dict[str, List[Tuple[str, float]]], Dict[str, float]]:
     """
     Builds a small synthetic graph with 2-3 alternative routes between
     'DEALER' and 'REFINERY', each with a different distance (representing
     highway vs local road choices), plus straight-line heuristic distances
     for A*.
     """
-    highway = round(distance_km * 1.05, 1)     # slightly longer, but faster in practice
-    local_road = round(distance_km * 1.25, 1)  # shorter detour avoided, more turns
-    direct = round(distance_km * 1.0, 1)
+    location_factor = {
+        "coastal": 1.08,
+        "inland": 1.0,
+        "hilly": 1.15,
+    }.get(dealer_location.lower(), 1.0)
+
+    route_factor = {
+        "default": 1.0,
+        "port_corridor": 1.12,
+        "mountain_pass": 1.2,
+        "highway_arc": 0.98,
+    }.get(route_profile.lower(), 1.0)
+
+    highway = round(distance_km * 1.05 * location_factor * route_factor, 1)
+    local_road = round(distance_km * 1.25 * location_factor * route_factor, 1)
+    direct = round(distance_km * 1.0 * location_factor * route_factor, 1)
 
     graph = {
         "DEALER": [("VIA_HIGHWAY", highway / 2), ("VIA_LOCAL", local_road / 2), ("VIA_DIRECT", direct / 2)],
@@ -99,9 +116,13 @@ def _reconstruct(prev, start, goal):
     return list(reversed(path))
 
 
-def best_route(distance_km: float) -> dict:
+def best_route(
+    distance_km: float,
+    dealer_location: str = "inland",
+    route_profile: str = "default",
+) -> dict:
     """Convenience wrapper: runs both algorithms and returns the best result found."""
-    graph, heuristic = build_corridor_graph(distance_km)
+    graph, heuristic = build_corridor_graph(distance_km, dealer_location, route_profile)
     dij_path, dij_dist = dijkstra(graph, "DEALER", "REFINERY")
     astar_path, astar_dist = a_star(graph, heuristic, "DEALER", "REFINERY")
 
