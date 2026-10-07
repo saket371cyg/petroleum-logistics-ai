@@ -175,3 +175,71 @@ def hill_climb(
             best_state, best_cost = current, current_cost
 
     return best_state, best_cost, total_iterations
+
+
+def benchmark_hill_climb(
+    pools: DispatchCandidatePools,
+    order_qty_l: float,
+    distance_km: float,
+    eta_adjustment_hours: float,
+    deadline: datetime,
+    now: datetime,
+    max_iterations: int = 200,
+    restarts: int = 5,
+) -> dict:
+    """Runs the hill-climb optimizer repeatedly and returns a compact benchmark summary."""
+    if not pools.tankers or not pools.drivers or not pools.slots:
+        raise ValueError("No feasible candidates available for optimization.")
+
+    results = []
+    best_total_cost = float("inf")
+    best_state = None
+    total_iterations = 0
+
+    for restart_index in range(restarts):
+        state, cost, iterations = hill_climb(
+            pools=pools,
+            order_qty_l=order_qty_l,
+            distance_km=distance_km,
+            eta_adjustment_hours=eta_adjustment_hours,
+            deadline=deadline,
+            now=now,
+            max_iterations=max_iterations,
+            restarts=1,
+        )
+        total_iterations += iterations
+        result_entry = {
+            "restart": restart_index + 1,
+            "state": {
+                "tanker_id": state.tanker_id,
+                "driver_id": state.driver_id,
+                "slot_id": state.slot_id,
+            },
+            "total_cost": round(cost.total_cost, 2),
+            "delivery_time_hours": round(cost.delivery_time_hours, 2),
+            "transport_cost": round(cost.transport_cost, 2),
+        }
+        results.append(result_entry)
+
+        if cost.total_cost < best_total_cost:
+            best_total_cost = cost.total_cost
+            best_state = state
+
+    average_total_cost = sum(item["total_cost"] for item in results) / max(len(results), 1)
+    success_rate = sum(
+        1 for item in results if item["total_cost"] <= best_total_cost * 1.05
+    ) / max(len(results), 1)
+
+    return {
+        "best_total_cost": round(best_total_cost, 2),
+        "average_total_cost": round(average_total_cost, 2),
+        "restarts": restarts,
+        "iterations": total_iterations,
+        "success_rate": round(success_rate, 4),
+        "best_state": {
+            "tanker_id": best_state.tanker_id,
+            "driver_id": best_state.driver_id,
+            "slot_id": best_state.slot_id,
+        } if best_state else None,
+        "results": results,
+    }

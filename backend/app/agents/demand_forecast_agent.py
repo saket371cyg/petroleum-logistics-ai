@@ -59,8 +59,40 @@ class DemandForecastAgent:
         df = pd.DataFrame([{"sale_date": r.sale_date, "quantity_l": r.quantity_l} for r in rows])
         return df.sort_values("sale_date").reset_index(drop=True)
 
+    def _fallback_predict(self, dealer_id: int, fuel_type: str, horizon_days: int = 7) -> ForecastOut:
+        """Generates a deterministic offline baseline when the trained model is unavailable."""
+        history = self._recent_history(dealer_id, fuel_type, min_days=14)
+        values = history["quantity_l"].astype(float).tolist()
+        recent_window = values[-7:]
+        recent_mean = float(np.mean(recent_window)) if recent_window else 0.0
+        trend = float(np.mean(np.diff(recent_window))) if len(recent_window) > 1 else 0.0
+
+        points: List[ForecastPoint] = []
+        last_date = pd.to_datetime(history["sale_date"].iloc[-1])
+        for step in range(horizon_days):
+            next_date = last_date + timedelta(days=step + 1)
+            seasonal_adjustment = max(0.0, 0.12 * np.sin((next_date.dayofweek + 1) / 7 * 2 * np.pi))
+            bias = step * 0.35 * max(0.0, trend)
+            prediction = max(0.0, recent_mean + bias + seasonal_adjustment)
+            points.append(ForecastPoint(date=next_date.date(), predicted_qty_l=round(prediction, 1)))
+
+        return ForecastOut(
+            fuel_type=fuel_type,
+            horizon_days=horizon_days,
+            confidence=0.62,
+            model_version="baseline_v1",
+            points=points,
+            mae=None,
+            rmse=None,
+            mape=None,
+        )
+
     def predict(self, dealer_id: int, fuel_type: str, horizon_days: int = 7) -> ForecastOut:
-        bundle = self._load_model(dealer_id, fuel_type)
+        try:
+            bundle = self._load_model(dealer_id, fuel_type)
+        except FileNotFoundError:
+            return self._fallback_predict(dealer_id, fuel_type, horizon_days)
+
         model = bundle["model"]
         history = self._recent_history(dealer_id, fuel_type)
 
