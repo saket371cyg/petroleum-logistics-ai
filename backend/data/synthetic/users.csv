@@ -1,0 +1,4 @@
+dealer_id,email,password_plain,role
+1,dealer1@example.com,password123,DEALER_ADMIN
+2,dealer2@example.com,password123,DEALER_ADMIN
+3,dealer3@example.com,password123,DEALER_ADMIN

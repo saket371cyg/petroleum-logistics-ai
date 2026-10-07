@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background-color: #0E1316;
+  color: #E7ECEE;
+  font-feature-settings: "tnum" 1;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #161C20;
+}
+::-webkit-scrollbar-thumb {
+  background: #2A333A;
+  border-radius: 4px;
+}
+
+.data-num {
+  font-family: "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  background-color: #161C20;
+  border: 1px solid #2A333A;
+  border-radius: 10px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.badge-normal { background-color: #16301F; color: #4FAE79; }
+.badge-warning { background-color: #3A2E1A; color: #E8A23A; }
+.badge-critical { background-color: #3A1E1B; color: #E2574C; }
+.badge-neutral { background-color: #242C33; color: #9AA7AE; }
