@@ -30,8 +30,7 @@ def get_tool_schemas() -> List[Dict[str, Any]]:
             "description": "Get fuel inventory status and risk for a dealer.",
             "input_schema": {
                 "type": "object",
-                "properties": {"fuel_type": {"type": "string", "enum": ["PETROL", "DIESEL"]}},
-                "required": ["fuel_type"],
+                "properties": {"fuel_type": {"type": "string", "description": "Exact configured fuel type; omit to analyze all fuels."}},
             },
         },
         {
@@ -40,10 +39,9 @@ def get_tool_schemas() -> List[Dict[str, Any]]:
             "input_schema": {
                 "type": "object",
                 "properties": {
-                    "fuel_type": {"type": "string", "enum": ["PETROL", "DIESEL"]},
+                    "fuel_type": {"type": "string", "description": "Exact configured fuel type; omit to forecast all fuels."},
                     "horizon_days": {"type": "integer", "minimum": 1, "maximum": 30},
                 },
-                "required": ["fuel_type"],
             },
         },
         {
@@ -51,8 +49,7 @@ def get_tool_schemas() -> List[Dict[str, Any]]:
             "description": "Recommend a fuel order for the selected dealer.",
             "input_schema": {
                 "type": "object",
-                "properties": {"fuel_type": {"type": "string", "enum": ["PETROL", "DIESEL"]}},
-                "required": ["fuel_type"],
+                "properties": {"fuel_type": {"type": "string", "description": "Exact configured fuel type; omit to compare all fuels."}},
             },
         },
         {
@@ -106,20 +103,33 @@ def execute_tool(name: str, arguments: Dict[str, Any], dealer_id: int, db: Sessi
     """Execute a whitelisted tool with the tenant-scoped dealer_id attached."""
     dealer_id = int(dealer_id)
     if name == "get_inventory_risk":
-        fuel_type = (arguments or {}).get("fuel_type", "DIESEL")
+        fuel_type = (arguments or {}).get("fuel_type")
         agent = InventoryAgent(db)
-        return [risk.model_dump() for risk in agent.compute_all_risks(dealer_id)] if fuel_type == "ALL" else agent.compute_risk(dealer_id, fuel_type).model_dump()
+        return [risk.model_dump() for risk in agent.compute_all_risks(dealer_id)] if not fuel_type or fuel_type == "ALL" else agent.compute_risk(dealer_id, fuel_type).model_dump()
 
     if name == "get_demand_forecast":
-        fuel_type = (arguments or {}).get("fuel_type", "DIESEL")
+        fuel_type = (arguments or {}).get("fuel_type")
         horizon_days = int((arguments or {}).get("horizon_days", 7))
-        forecast = DemandForecastAgent(db).predict(dealer_id, fuel_type, horizon_days=horizon_days)
-        return forecast.model_dump()
+        agent = DemandForecastAgent(db)
+        if fuel_type:
+            try:
+                return agent.predict(dealer_id, fuel_type, horizon_days=horizon_days).model_dump()
+            except (FileNotFoundError, ValueError, TypeError, IndexError) as error:
+                return {"fuel_type": fuel_type, "status": "INSUFFICIENT_DATA", "reason": str(error)}
+        forecasts = []
+        for inventory in InventoryAgent(db).get_inventory(dealer_id):
+            try:
+                forecasts.append(agent.predict(dealer_id, inventory.fuel_type, horizon_days=horizon_days).model_dump())
+            except (FileNotFoundError, ValueError, TypeError, IndexError) as error:
+                forecasts.append({"fuel_type": inventory.fuel_type, "status": "INSUFFICIENT_DATA", "reason": str(error)})
+        return forecasts
 
     if name == "recommend_order":
-        fuel_type = (arguments or {}).get("fuel_type", "DIESEL")
-        recommendation = OrderRecommendationAgent(db).recommend(dealer_id, fuel_type)
-        return recommendation.model_dump()
+        fuel_type = (arguments or {}).get("fuel_type")
+        agent = OrderRecommendationAgent(db)
+        if not fuel_type:
+            return agent.analyze_all_fuels(dealer_id)
+        return agent.recommend(dealer_id, fuel_type).model_dump()
 
     if name == "list_available_tankers":
         tankers = FleetIntelligenceAgent(db).available_tankers(dealer_id)

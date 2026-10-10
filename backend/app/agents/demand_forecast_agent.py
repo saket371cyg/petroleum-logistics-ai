@@ -54,8 +54,10 @@ class DemandForecastAgent:
             .limit(60)
             .all()
         )
+        if not rows:
+            raise ValueError("No sales history available for this dealer and fuel type.")
         if len(rows) < min_days:
-            raise ValueError("Not enough sales history to forecast.")
+            min_days = len(rows)
         df = pd.DataFrame([{"sale_date": r.sale_date, "quantity_l": r.quantity_l} for r in rows])
         return df.sort_values("sale_date").reset_index(drop=True)
 
@@ -96,47 +98,54 @@ class DemandForecastAgent:
         model = bundle["model"]
         history = self._recent_history(dealer_id, fuel_type)
 
-        series = history[["sale_date", "quantity_l"]].copy()
-        series["sale_date"] = pd.to_datetime(series["sale_date"])
+        try:
+            series = history[["sale_date", "quantity_l"]].copy()
+            series["sale_date"] = pd.to_datetime(series["sale_date"])
 
-        points: List[ForecastPoint] = []
-        cursor = series.copy()
+            points: List[ForecastPoint] = []
+            cursor = series.copy()
 
-        for step in range(horizon_days):
-            next_date = cursor["sale_date"].iloc[-1] + timedelta(days=1)
-            row = {"sale_date": next_date}
-            row["day_of_week"] = next_date.dayofweek
-            row["month"] = next_date.month
-            row["is_weekend"] = int(next_date.dayofweek >= 5)
+            for step in range(horizon_days):
+                next_date = cursor["sale_date"].iloc[-1] + timedelta(days=1)
+                row = {"sale_date": next_date}
+                row["day_of_week"] = next_date.dayofweek
+                row["month"] = next_date.month
+                row["is_weekend"] = int(next_date.dayofweek >= 5)
 
-            vals = cursor["quantity_l"].values
-            for lag in LAGS:
-                row[f"lag_{lag}"] = vals[-lag]
-            for w in ROLLING_WINDOWS:
-                row[f"rolling_mean_{w}"] = np.mean(vals[-w:])
-                row[f"rolling_std_{w}"] = np.std(vals[-w:])
+                vals = cursor["quantity_l"].values
+                for lag in LAGS:
+                    if len(vals) >= lag:
+                        row[f"lag_{lag}"] = vals[-lag]
+                    else:
+                        row[f"lag_{lag}"] = float(vals[0]) if len(vals) else 0.0
+                for w in ROLLING_WINDOWS:
+                    window_values = vals[-w:] if len(vals) >= w else vals
+                    row[f"rolling_mean_{w}"] = np.mean(window_values) if len(window_values) else 0.0
+                    row[f"rolling_std_{w}"] = np.std(window_values) if len(window_values) else 0.0
 
-            X = pd.DataFrame([row])[FEATURE_COLS]
-            pred = float(model.predict(X)[0])
-            pred = max(0.0, pred)
+                X = pd.DataFrame([row])[FEATURE_COLS]
+                pred = float(model.predict(X)[0])
+                pred = max(0.0, pred)
 
-            points.append(ForecastPoint(date=next_date.date(), predicted_qty_l=round(pred, 1)))
-            cursor = pd.concat([cursor, pd.DataFrame([{"sale_date": next_date, "quantity_l": pred}])], ignore_index=True)
+                points.append(ForecastPoint(date=next_date.date(), predicted_qty_l=round(pred, 1)))
+                cursor = pd.concat([cursor, pd.DataFrame([{"sale_date": next_date, "quantity_l": pred}])], ignore_index=True)
 
-        metrics = self._metrics.get((dealer_id, fuel_type), {})
-        mape = metrics.get("mape", None)
-        confidence = max(0.5, 1 - (mape / 100)) if mape is not None else 0.75
+            metrics = self._metrics.get((dealer_id, fuel_type), {})
+            mape = metrics.get("mape", None)
+            confidence = max(0.5, 1 - (mape / 100)) if mape is not None else 0.75
 
-        return ForecastOut(
-            fuel_type=fuel_type,
-            horizon_days=horizon_days,
-            confidence=round(confidence, 2),
-            model_version="rf_v1",
-            points=points,
-            mae=metrics.get("mae"),
-            rmse=metrics.get("rmse"),
-            mape=metrics.get("mape"),
-        )
+            return ForecastOut(
+                fuel_type=fuel_type,
+                horizon_days=horizon_days,
+                confidence=round(confidence, 2),
+                model_version="rf_v1",
+                points=points,
+                mae=metrics.get("mae"),
+                rmse=metrics.get("rmse"),
+                mape=metrics.get("mape"),
+            )
+        except (IndexError, ValueError, TypeError):
+            return self._fallback_predict(dealer_id, fuel_type, horizon_days)
 
     def predicted_daily_demand(self, dealer_id: int, fuel_type: str) -> float:
         """Convenience: average of the next-day and 3-day forecast, used by other agents."""

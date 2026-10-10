@@ -12,6 +12,7 @@ from statistics import mean
 from sqlalchemy.orm import Session
 
 from app import models as m
+from app.core.dates import utc_now
 from app.schemas import AnalyticsOut
 from app.agents.inventory_agent import InventoryAgent
 from app.agents.fleet_intelligence_agent import FleetIntelligenceAgent
@@ -71,7 +72,7 @@ class ExecutiveAgent:
 
         return AnalyticsOut(
             dealer_id=dealer_id,
-            generated_at=datetime.utcnow(),
+            generated_at=utc_now(),
             petrol_stock_l=petrol_stock,
             diesel_stock_l=diesel_stock,
             pending_orders=pending_orders,

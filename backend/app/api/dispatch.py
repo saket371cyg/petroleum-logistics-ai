@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.security import get_current_user, require_dealer_access
+from app.core.dates import utc_now
 from app.schemas import DispatchOptimizeRequest, DispatchOptimizeResponse, DispatchOut
 from app.orchestration.dispatch_orchestrator import run_dispatch_workflow
 from app import models as m
@@ -79,7 +80,7 @@ def complete_dispatch(dispatch_id: int, db: Session = Depends(get_db), current_u
     if not dispatch:
         raise HTTPException(status_code=404, detail="Dispatch not found")
     dispatch.status = "DELIVERED"
-    dispatch.actual_arrival = datetime.utcnow()
+    dispatch.actual_arrival = utc_now()
 
     tanker = db.query(m.Tanker).filter(m.Tanker.id == dispatch.tanker_id).first()
     if tanker:

@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 
 from app import models as m
+from app.core.dates import utc_now
 from app.agents.dispatch_optimization_agent import DispatchOptimizationAgent
 
 
@@ -36,7 +37,7 @@ class DispatchWorkflowState:
         payload: Dict[str, Any] = {
             "step": step_name,
             "state": next_state,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": utc_now().isoformat(),
         }
         if metadata:
             payload["metadata"] = metadata

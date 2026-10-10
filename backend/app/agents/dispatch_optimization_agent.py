@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app import models as m
+from app.core.dates import utc_now
 from app.agents.fleet_intelligence_agent import FleetIntelligenceAgent
 from app.agents.refinery_coordination_agent import RefineryCoordinationAgent
 from app.agents.compliance_agent import ComplianceAgent
@@ -30,11 +31,11 @@ class DispatchOptimizationAgent:
         self.weather_agent = WeatherTrafficAgent()
 
     def optimize(self, order: m.FuelOrder, deadline_hours: float = 6.0) -> dict:
-        now = datetime.utcnow()
+        now = utc_now()
         deadline = now + timedelta(hours=deadline_hours)
 
         # 1. Candidate tankers: available, sufficient capacity, compliant, not high maintenance risk
-        candidate_tankers = self.fleet_agent.available_tankers(order.dealer_id, min_capacity_l=0)
+        candidate_tankers = self.fleet_agent.available_tankers(order.dealer_id, min_capacity_l=order.quantity_l)
         candidate_tankers = [t for t in candidate_tankers if self.maintenance_agent.is_safe_to_dispatch(t)]
         if not candidate_tankers:
             raise ValueError("No compliant, available, maintenance-safe tankers found for this dealer.")
@@ -45,7 +46,7 @@ class DispatchOptimizationAgent:
             raise ValueError("No compliant, available drivers found for this dealer.")
 
         # 3. Candidate loading slots
-        candidate_slots = self.refinery_agent.list_open_slots()
+        candidate_slots = [slot for slot in self.refinery_agent.list_open_slots() if slot.slot_start >= now]
         if not candidate_slots:
             raise ValueError("No open refinery loading slots available.")
 
@@ -103,6 +104,10 @@ class DispatchOptimizationAgent:
             "departure_time": departure_time,
             "eta": eta,
             "risk_level": risk.risk_level,
+            "weather_condition": risk.weather_condition,
+            "traffic_level": risk.traffic_level,
+            "weather_risk_score": risk.risk_score,
+            "eta_adjustment_hours": risk.eta_adjustment_hours,
             "estimated_cost": best_cost.transport_cost,
             "optimization_score": -best_cost.total_cost,
             "iterations": iterations,

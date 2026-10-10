@@ -33,4 +33,5 @@ def ai_query(payload: AIQueryRequest, db: Session = Depends(get_db), current_use
         sources=result.get("sources", result.get("data_sources", [])),
         tool_trace=result.get("tool_trace", []),
         mode=result.get("mode", "fallback"),
+        decision=result.get("decision"),
     )

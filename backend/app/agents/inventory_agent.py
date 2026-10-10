@@ -35,7 +35,7 @@ class InventoryAgent:
 
         try:
             predicted_daily_demand = self.forecast_agent.predicted_daily_demand(dealer_id, fuel_type)
-        except (FileNotFoundError, ValueError):
+        except (FileNotFoundError, ValueError, TypeError, IndexError):
             # Fallback if no model/history yet: naive demand estimate from safety stock sizing.
             predicted_daily_demand = max(inv.safety_stock_l / max(settings.DEFAULT_SAFETY_STOCK_DAYS, 1), 1.0)
 

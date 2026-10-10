@@ -11,7 +11,7 @@ import os
 import random
 import numpy as np
 import pandas as pd
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 random.seed(42)
 np.random.seed(42)
@@ -29,7 +29,7 @@ HISTORY_DAYS = 400
 
 
 def gen_dealers():
-    return pd.DataFrame(DEALERS).assign(created_at=datetime.utcnow().isoformat())
+    return pd.DataFrame(DEALERS).assign(created_at=datetime.now(timezone.utc).replace(tzinfo=None).isoformat())
 
 
 def gen_users():
@@ -154,7 +154,7 @@ def gen_loading_slots():
     sid = 1
     for ref_id in [1, 2]:
         for day_offset in range(5):
-            day = datetime.utcnow() + timedelta(days=day_offset)
+            day = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=day_offset)
             for hour in [7, 9, 11, 13, 15, 17]:
                 slot_start = day.replace(hour=hour, minute=0, second=0, microsecond=0)
                 rows.append({

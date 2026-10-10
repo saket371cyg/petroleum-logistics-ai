@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.security import get_current_user, require_dealer_access
+from app.core.dates import utc_now
 from app.schemas import OrderCreate, OrderOut, OrderRecommendationOut
 from app.agents.order_recommendation_agent import OrderRecommendationAgent
 from app import models as m
@@ -47,7 +48,7 @@ def approve_order(order_id: int, db: Session = Depends(get_db), current_user: m.
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     order.status = "APPROVED"
-    order.approved_at = datetime.utcnow()
+    order.approved_at = utc_now()
     db.commit()
     db.refresh(order)
     return order

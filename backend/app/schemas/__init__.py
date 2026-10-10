@@ -198,3 +198,4 @@ class AIQueryResponse(BaseModel):
     sources: List[str] = []
     tool_trace: List[str] = []
     mode: str = "fallback"
+    decision: Optional[dict] = None

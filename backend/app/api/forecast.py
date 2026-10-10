@@ -12,7 +12,7 @@ router = APIRouter(prefix="/forecast", tags=["forecast"])
 @router.get("/{dealer_id}", response_model=ForecastOut)
 def get_forecast(
     dealer_id: int,
-    fuel_type: str = Query("DIESEL", pattern="^(PETROL|DIESEL)$"),
+    fuel_type: str = Query("DIESEL"),
     horizon_days: int = Query(7, ge=1, le=30),
     db: Session = Depends(get_db),
     _=Depends(require_dealer_access),

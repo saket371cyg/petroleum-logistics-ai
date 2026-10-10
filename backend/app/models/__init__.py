@@ -8,6 +8,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from app.core.db import Base
+from app.core.dates import utc_now
 
 
 class Dealer(Base):
@@ -16,7 +17,7 @@ class Dealer(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(150), nullable=False)
     location = Column(String(200), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     users = relationship("User", back_populates="dealer")
     inventory = relationship("FuelInventory", back_populates="dealer")
@@ -33,7 +34,7 @@ class User(Base):
     email = Column(String(200), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     role = Column(String(30), default="DEALER_ADMIN")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     dealer = relationship("Dealer", back_populates="users")
 
@@ -44,12 +45,12 @@ class FuelInventory(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     dealer_id = Column(Integer, ForeignKey("dealers.id"), nullable=False, index=True)
-    fuel_type = Column(String(20), nullable=False)  # PETROL / DIESEL
+    fuel_type = Column(String(20), nullable=False)  # Dealer-configured fuel type
     current_level_l = Column(Float, nullable=False)
     tank_capacity_l = Column(Float, nullable=False)
     safety_stock_l = Column(Float, nullable=False)
     reorder_point_l = Column(Float, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     dealer = relationship("Dealer", back_populates="inventory")
 
@@ -64,7 +65,7 @@ class FuelOrder(Base):
     status = Column(String(20), default="PENDING", index=True)  # PENDING/APPROVED/FULFILLED/CANCELLED
     recommended_by_agent = Column(Boolean, default=False)
     explanation = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
     approved_at = Column(DateTime, nullable=True)
 
     dealer = relationship("Dealer", back_populates="orders")
@@ -141,7 +142,7 @@ class Dispatch(Base):
     risk_level = Column(String(10), nullable=True)  # LOW/MEDIUM/HIGH
     estimated_cost = Column(Float, nullable=True)
     optimization_score = Column(Float, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     order = relationship("FuelOrder", back_populates="dispatches")
 
@@ -181,7 +182,7 @@ class DemandPrediction(Base):
     predicted_qty_l = Column(Float, nullable=False)
     confidence = Column(Float, nullable=True)
     model_version = Column(String(30), default="v1")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
 
 class TrafficData(Base):
@@ -191,7 +192,7 @@ class TrafficData(Base):
     dispatch_id = Column(Integer, ForeignKey("dispatches.id"), nullable=True)
     route_segment = Column(String(150), nullable=True)
     traffic_level = Column(String(20), nullable=False)  # LOW/MODERATE/HEAVY
-    recorded_at = Column(DateTime, default=datetime.utcnow)
+    recorded_at = Column(DateTime, default=utc_now)
 
 
 class WeatherData(Base):
@@ -201,7 +202,7 @@ class WeatherData(Base):
     dispatch_id = Column(Integer, ForeignKey("dispatches.id"), nullable=True)
     condition = Column(String(30), nullable=False)  # CLEAR/RAIN/FOG/STORM
     rain_mm = Column(Float, default=0)
-    recorded_at = Column(DateTime, default=datetime.utcnow)
+    recorded_at = Column(DateTime, default=utc_now)
 
 
 class AIRecommendation(Base):
@@ -215,7 +216,7 @@ class AIRecommendation(Base):
     payload_json = Column(Text, nullable=False)
     explanation_text = Column(Text, nullable=True)
     status = Column(String(20), default="PENDING")  # PENDING/ACCEPTED/REJECTED
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
 
 class DailySales(Base):

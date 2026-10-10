@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app import models as m
 from app.core.db import Base
+from app.core.dates import utc_now
 from app.optimization.hill_climbing import DispatchCandidatePools, benchmark_hill_climb
 from app.agents.demand_forecast_agent import DemandForecastAgent
 
@@ -38,8 +39,8 @@ def test_hill_climb_benchmark_returns_summary():
         tankers=[{"id": 1, "capacity_l": 18000}, {"id": 2, "capacity_l": 25000}],
         drivers=[{"id": 10}, {"id": 11}],
         slots=[
-            {"id": 21, "slot_start": datetime.utcnow() + timedelta(hours=2)},
-            {"id": 22, "slot_start": datetime.utcnow() + timedelta(hours=4)},
+            {"id": 21, "slot_start": utc_now() + timedelta(hours=2)},
+            {"id": 22, "slot_start": utc_now() + timedelta(hours=4)},
         ],
     )
 
@@ -48,8 +49,8 @@ def test_hill_climb_benchmark_returns_summary():
         order_qty_l=15000,
         distance_km=90,
         eta_adjustment_hours=1.5,
-        deadline=datetime.utcnow() + timedelta(hours=7),
-        now=datetime.utcnow(),
+        deadline=utc_now() + timedelta(hours=7),
+        now=utc_now(),
         restarts=3,
     )
 

@@ -83,19 +83,22 @@ def main():
     db = SessionLocal()
     metrics = []
     try:
-        dealer_ids = [r.id for r in db.query(m.Dealer).all()]
-        for dealer_id in dealer_ids:
-            for fuel_type in ["PETROL", "DIESEL"]:
-                rows = db.query(m.DailySales).filter(
-                    m.DailySales.dealer_id == dealer_id, m.DailySales.fuel_type == fuel_type
-                ).all()
-                raw = pd.DataFrame([{"sale_date": r.sale_date, "quantity_l": r.quantity_l} for r in rows])
-                if raw.empty:
-                    continue
+        fuel_pairs = db.query(m.DailySales.dealer_id, m.DailySales.fuel_type).distinct().all()
+        for dealer_id, fuel_type in fuel_pairs:
+            rows = db.query(m.DailySales).filter(
+                m.DailySales.dealer_id == dealer_id, m.DailySales.fuel_type == fuel_type
+            ).all()
+            raw = pd.DataFrame([{"sale_date": r.sale_date, "quantity_l": r.quantity_l} for r in rows])
+            if raw.empty:
+                continue
+            try:
                 result = train_one(dealer_id, fuel_type, raw)
-                metrics.append(result)
-                print(f"Trained dealer={dealer_id} fuel={fuel_type}: MAE={result['mae']:.1f}L "
-                      f"RMSE={result['rmse']:.1f}L MAPE={result['mape']:.2f}%")
+            except ValueError as error:
+                print(f"Skipped dealer={dealer_id} fuel={fuel_type}: {error}")
+                continue
+            metrics.append(result)
+            print(f"Trained dealer={dealer_id} fuel={fuel_type}: MAE={result['mae']:.1f}L "
+                  f"RMSE={result['rmse']:.1f}L MAPE={result['mape']:.2f}%")
     finally:
         db.close()
 

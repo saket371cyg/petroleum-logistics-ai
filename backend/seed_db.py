@@ -21,12 +21,15 @@ def load_csv(name):
 def main():
     os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data"), exist_ok=True)
 
-    print("Creating tables...")
-    Base.metadata.drop_all(bind=engine)
+    print("Creating tables if needed...")
     Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
     try:
+        if db.query(m.Dealer).first() is not None:
+            print("Database already contains dealers; preserving existing data.")
+            return
+
         dealers = load_csv("dealers")
         for _, r in dealers.iterrows():
             db.add(m.Dealer(id=int(r["id"]), name=r["name"], location=r["location"]))

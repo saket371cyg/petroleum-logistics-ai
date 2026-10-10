@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app import models as m
 from app.core.db import Base
+from app.core.dates import utc_now
 from app.orchestration.dispatch_orchestrator import run_dispatch_workflow
 
 
@@ -39,8 +40,8 @@ def _build_order_session():
     slot = m.LoadingSlot(
         id=1,
         refinery_id=refinery.id,
-        slot_start=datetime.utcnow() + timedelta(hours=2),
-        slot_end=datetime.utcnow() + timedelta(hours=4),
+        slot_start=utc_now() + timedelta(hours=2),
+        slot_end=utc_now() + timedelta(hours=4),
         status="OPEN",
     )
     session.add_all([tanker, driver, refinery, slot])
