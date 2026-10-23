@@ -15,6 +15,9 @@ export const authApi = {
 export const inventoryApi = {
   get: (dealerId) => api.get(`/inventory/${dealerId}`),
   getRisk: (dealerId) => api.get(`/inventory/${dealerId}/risk`),
+  update: (dealerId, fuelType, data) => api.put(`/inventory/${dealerId}/${fuelType}`, data),
+  simulateConsumption: (dealerId, data = { days: 1.0 }) =>
+    api.post(`/inventory/${dealerId}/simulate-consumption`, data),
 }
 
 export const forecastApi = {
@@ -27,16 +30,25 @@ export const ordersApi = {
   create: (fuelType, quantityL) => api.post('/orders', { fuel_type: fuelType, quantity_l: quantityL }),
   recommend: (orderId, fuelType) => api.post(`/orders/${orderId}/recommend`, null, { params: { fuel_type: fuelType } }),
   approve: (orderId) => api.post(`/orders/${orderId}/approve`),
+  cancel: (orderId) => api.post(`/orders/${orderId}/cancel`),
 }
 
 export const fleetApi = {
   available: () => api.get('/fleet/available'),
   tankers: (dealerId) => api.get(`/fleet/${dealerId}`),
   drivers: (dealerId) => api.get(`/fleet/${dealerId}/drivers`),
+  createTanker: (data) => api.post('/fleet/tankers', data),
+  updateTanker: (tankerId, data) => api.patch(`/fleet/tankers/${tankerId}`, data),
+  deleteTanker: (tankerId) => api.delete(`/fleet/tankers/${tankerId}`),
+  createDriver: (data) => api.post('/fleet/drivers', data),
+  updateDriver: (driverId, data) => api.patch(`/fleet/drivers/${driverId}`, data),
+  deleteDriver: (driverId) => api.delete(`/fleet/drivers/${driverId}`),
 }
 
 export const refineryApi = {
   slots: () => api.get('/refinery-slots'),
+  refineries: () => api.get('/refinery-slots/refineries'),
+  createSlot: (data) => api.post('/refinery-slots', data),
 }
 
 export const dispatchApi = {
@@ -48,10 +60,13 @@ export const dispatchApi = {
 
 export const complianceApi = {
   alerts: (dealerId) => api.get(`/compliance/${dealerId}`),
+  renew: (data) => api.post('/compliance/renew', data),
+  create: (data) => api.post('/compliance', data),
 }
 
 export const maintenanceApi = {
   alerts: (dealerId) => api.get(`/maintenance/${dealerId}`),
+  log: (data) => api.post('/maintenance/log', data),
 }
 
 export const analyticsApi = {

@@ -45,6 +45,17 @@ class InventoryRiskOut(BaseModel):
     reorder_point_l: float
 
 
+class InventoryUpdate(BaseModel):
+    current_level_l: Optional[float] = None
+    safety_stock_l: Optional[float] = None
+    reorder_point_l: Optional[float] = None
+
+
+class InventorySimulateConsumption(BaseModel):
+    days: float = 1.0
+    fuel_type: Optional[str] = None
+
+
 # ---------- Forecast ----------
 class ForecastPoint(BaseModel):
     date: date
@@ -100,6 +111,23 @@ class TankerOut(BaseModel):
     age_years: float
 
 
+class TankerCreate(BaseModel):
+    code: str
+    capacity_l: float
+    status: str = "AVAILABLE"
+    mileage_km: float = 0.0
+    age_years: float = 1.0
+    current_location: Optional[str] = None
+
+
+class TankerUpdate(BaseModel):
+    capacity_l: Optional[float] = None
+    status: Optional[str] = None
+    mileage_km: Optional[float] = None
+    age_years: Optional[float] = None
+    current_location: Optional[str] = None
+
+
 class DriverOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -109,7 +137,29 @@ class DriverOut(BaseModel):
     status: str
 
 
+class DriverCreate(BaseModel):
+    name: str
+    license_number: str
+    license_expiry: date
+    status: str = "AVAILABLE"
+
+
+class DriverUpdate(BaseModel):
+    name: Optional[str] = None
+    license_number: Optional[str] = None
+    license_expiry: Optional[date] = None
+    status: Optional[str] = None
+
+
 # ---------- Refinery ----------
+class RefineryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    location: str
+    distance_km_default: float
+
+
 class LoadingSlotOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -117,6 +167,15 @@ class LoadingSlotOut(BaseModel):
     slot_start: datetime
     slot_end: datetime
     status: str
+    refinery_name: Optional[str] = None
+    refinery_location: Optional[str] = None
+
+
+class LoadingSlotCreate(BaseModel):
+    refinery_id: int
+    slot_start: datetime
+    slot_end: datetime
+    status: str = "OPEN"
 
 
 # ---------- Dispatch ----------
@@ -171,6 +230,28 @@ class MaintenanceAlertOut(BaseModel):
     risk_level: str
     recommended_service_date: date
     reason: str
+
+
+class MaintenanceRecordCreate(BaseModel):
+    tanker_id: int
+    service_date: Optional[date] = None
+    mileage_at_service: Optional[float] = None
+    issue_notes: Optional[str] = "Routine preventive maintenance & inspection"
+    next_due_date: Optional[date] = None
+
+
+class ComplianceRecordCreate(BaseModel):
+    entity_type: str  # TANKER / DRIVER
+    entity_id: int
+    doc_type: str
+    expiry_date: date
+
+
+class ComplianceRenewRequest(BaseModel):
+    entity_type: str
+    entity_id: int
+    doc_type: str
+    new_expiry_date: date
 
 
 # ---------- Analytics / Executive ----------

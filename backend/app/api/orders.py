@@ -52,3 +52,16 @@ def approve_order(order_id: int, db: Session = Depends(get_db), current_user: m.
     db.commit()
     db.refresh(order)
     return order
+
+
+@router.post("/{order_id}/cancel", response_model=OrderOut)
+def cancel_order(order_id: int, db: Session = Depends(get_db), current_user: m.User = Depends(get_current_user)):
+    order = db.query(m.FuelOrder).filter(m.FuelOrder.id == order_id, m.FuelOrder.dealer_id == current_user.dealer_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.status in ("FULFILLED", "CANCELLED"):
+        raise HTTPException(status_code=400, detail=f"Cannot cancel order in status {order.status}")
+    order.status = "CANCELLED"
+    db.commit()
+    db.refresh(order)
+    return order
