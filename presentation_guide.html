@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Petroleum Logistics AI Briefing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /*
+           Design Plan:
+           - Color: Industrial & High-Tech (Petrol Blue, Alert Amber, Slate, Electric Cyan)
+           - Type: Space Grotesk (Tech/Display), Inter (Body/UI)
+           - Layout: Professional technical briefing with hierarchical blocks and "Agent Cards"
+        */
+
+        :root {
+            --bg: #ffffff;
+            --fg: #1a1a1a;
+            --accent: #0066cc;
+            --accent-soft: #e6f0ff;
+            --surface: #f8fafc;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --warning: #f59e0b;
+            --critical: #ef4444;
+            --success: #10b981;
+
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #0f172a;
+                --fg: #f1f5f9;
+                --accent: #3b82f6;
+                --accent-soft: #1e293b;
+                --surface: #1e293b;
+                --border: #334155;
+                --muted: #94a3b8;
+                color-scheme: dark;
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --bg: #0f172a;
+            --fg: #f1f5f9;
+            --accent: #3b82f6;
+            --accent-soft: #1e293b;
+            --surface: #1e293b;
+            --border: #334155;
+            --muted: #94a3b8;
+            color-scheme: dark;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding-block: 2rem;
+            padding-inline: 1rem;
+            font-family: var(--font-body);
+            line-height: 1.6;
+            background: var(--bg);
+            color: var(--fg);
+            max-width: 900px;
+            margin-inline: auto;
+        }
+
+        header {
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin: 0;
+            line-height: 1.1;
+            text-wrap: balance;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--accent);
+            padding-left: 1rem;
+        }
+
+        h3 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            margin-top: 2rem;
+            color: var(--accent);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-block: 2rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 8px;
+            height: 100%;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-ml { background: #dbeafe; color: #1e40af; }
+        .badge-opt { background: #fef3c7; color: #92400e; }
+        .badge-agent { background: #dcfce7; color: #166534; }
+
+        .demo-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .step-num {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .step-content strong {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .viva-box {
+            background: var(--accent-soft);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-block: 3rem;
+        }
+
+        .viva-q {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .viva-a {
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        code {
+            background: var(--accent-soft);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        footer {
+            margin-top: 5rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .demo-step { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="eyebrow">B.Tech 3rd Year • AI Project Briefing</div>
+    <h1>Petroleum Logistics Decision Intelligence Engine</h1>
+    <p>A Multi-Agent System for Demand Forecasting, Optimization, and Supply Chain Resiliency.</p>
+</header>
+
+<section>
+    <h2>The Technical Thesis</h2>
+    <p>
+        This project transitions from simple data visualization to <strong>Active Decision Support</strong>.
+        It models a petroleum dealer's operational environment using a <strong>Multi-Agent System (MAS)</strong>,
+        where each agent handles a specific domain constraint (Compliance, Maintenance, Fleet, Inventory)
+        to solve a unified logistics problem.
+    </p>
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">
+                <span class="badge badge-ml">ML</span>
+                Demand Forecasting
+            </div>
+            <p><strong>Random Forest Regressor</strong> trained on historical sales, lag features (1/3/7/14 days), and temporal signals (weekends/holidays).</p>
+        </div>
+        <div class="card">
+            <div class="card-title">
+                <span class="badge badge-opt">Optimization</span>
+                Dispatch Scheduling
+            </div>
+            <p><strong>Random-Restart Hill Climbing</strong> to solve the combinatorial problem of tanker-driver-slot assignment under cost and time constraints.</p>
+        </div>
+        <div class="card">
+            <div class="card-title">
+                <span class="badge badge-agent">Agentic AI</span>
+                Multi-Agent System
+            </div>
+            <p>10 specialized agents collaborating via a <strong>Logic-Engine</strong> to ensure all operational decisions are compliant and safe.</p>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>Presentation Flow (Demo)</h2>
+
+    <div class="demo-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+            <strong>The Critical Alert</strong>
+            Show the Dashboard. Highlight the "Low Days of Stock" alert for Diesel. This demonstrates the <em>Inventory Agent's</em> real-time monitoring capability.
+        </div>
+    </div>
+
+    <div class="demo-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+            <strong>Predictive Intelligence</strong>
+            Navigate to the Forecast page. Explain how the <em>Random Forest</em> model predicts the next 14 days, identifying exactly when the stock will hit zero if no action is taken.
+        </div>
+    </div>
+
+    <div class="demo-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+            <strong>Combinatorial Optimization</strong>
+            Go to the Orders page. Click "Get Recommendation." Explain that the system is running a <em>Cost Evaluation</em> involving tanker capacity, driver rest periods, and refinery availability.
+        </div>
+    </div>
+
+    <div class="demo-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+            <strong>Explainable AI (XAI)</strong>
+            Ask the AI Assistant: <em>"Why this tanker?"</em> Show how the system provides a logical trace of why it picked one vehicle over another (Capacity vs. Maintenance Risk).
+        </div>
+    </div>
+</section>
+
+<section class="viva-box">
+    <div class="eyebrow">Potential Viva Questions</div>
+
+    <div class="viva-q">Q: Why use Hill Climbing instead of just sorting available tankers?</div>
+    <div class="viva-a">
+        Sorting ignores the <strong>interdependencies</strong>. A tanker might be available, but the driver assigned to it might be nearing their shift limit, or the loading slot might be too late to prevent a stock-out. Hill Climbing evaluates the <em>state</em> as a whole.
+    </div>
+
+    <div class="viva-q">Q: What makes this an "Agentic" system?</div>
+    <div class="viva-a">
+        The system is <strong>Decentralized</strong>. The <em>Compliance Agent</em> doesn't know about sales; it only knows about licenses. The <em>Executive Agent</em> doesn't know about optimization; it orchestrates the output. This modularity allows for "Veto" logic and specialized domain intelligence.
+    </div>
+
+    <div class="viva-q">Q: Why not use a Deep Learning model for forecasting?</div>
+    <div class="viva-a">
+        For daily retail sales with limited history (~1-2 years), <strong>Random Forest/XGBoost</strong> is superior as it doesn't overfit like an LSTM might, and it provides better <em>Feature Importance</em> metrics which are crucial for business trust.
+    </div>
+</section>
+
+<section>
+    <h2>Key Algorithms Implemented</h2>
+    <ul>
+        <li><span class="highlight">A* and Dijkstra:</span> For route search between dealer and refinery, factoring in synthetic traffic/weather costs.</li>
+        <li><span class="highlight">Hill Climbing:</span> For the dispatch "neighborhood search," with random restarts to avoid local minima.</li>
+        <li><span class="highlight">Logic-Based Intent Routing:</span> For the AI Assistant, ensuring queries are routed to the correct agent for data retrieval.</li>
+    </ul>
+</section>
+
+<footer>
+    Prepared for Faculty Presentation • 2026 Academic Year
+</footer>
+
+</body>
+</html>

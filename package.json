@@ -1,0 +1,12 @@
+{
+  "name": "petro-dealer-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agentic AI Decision Intelligence Platform — Petroleum Dealer Logistics",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  }
+}

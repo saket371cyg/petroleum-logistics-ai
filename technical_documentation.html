@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Technical Documentation</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #1a1a1a;
+            --accent: #0066cc;
+            --surface: #f8fafc;
+            --border: #e2e8f0;
+            --muted: #64748b;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #0f172a;
+                --fg: #f1f5f9;
+                --surface: #1e293b;
+                --border: #334155;
+            }
+        }
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: auto; padding: 2rem; background: var(--bg); color: var(--fg); }
+        h1, h2 { color: var(--accent); font-family: sans-serif; }
+        .card { background: var(--surface); padding: 1.5rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; }
+        code { background: var(--border); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+        .highlight { color: var(--accent); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Technical Documentation: Petroleum Decision Engine</h1>
+
+    <h2>1. The Technology Stack</h2>
+    <div class="card">
+        <ul>
+            <li><strong>Backend:</strong> <code>FastAPI</code> (High-performance API)</li>
+            <li><strong>Database:</strong> <code>PostgreSQL/SQLite</code> via <code>SQLAlchemy</code></li>
+            <li><strong>ML/Forecasting:</strong> <code>Scikit-Learn</code> (RandomForestRegressor)</li>
+            <li><strong>Optimization:</strong> <code>NumPy</code> (Vectorized cost math)</li>
+            <li><strong>Frontend:</strong> <code>React + Vite</code> (Dynamic Dashboard)</li>
+            <li><strong>Infrastructure:</strong> <code>Docker</code> (Containerization)</li>
+        </ul>
+    </div>
+
+    <h2>2. Logic Breakdown</h2>
+
+    <h3>Demand Forecasting (ML)</h3>
+    <p>Using <code>RandomForestRegressor</code> to predict daily demand. Features include historical lag (t-1, t-2, t-7, t-14) and calendar data (month, day-of-week).</p>
+
+    <h3>Dispatch Optimization (Hill Climbing)</h3>
+    <p>A non-deterministic approach to find high-quality dispatch plans. It iterates through tanker/driver/slot combinations to minimize a cost function involving delivery time, idle time, and penalties.</p>
+
+    <h3>Multi-Agent Orchestration</h3>
+    <p>The system comprises 10 independent agents, each with a single responsibility. This architecture allows for <strong>deterministic rule-checking</strong> (e.g., Compliance Agent) to coexist with <strong>probabilistic forecasting</strong> (Demand Agent).</p>
+
+    <h3>Route Search</h3>
+    <p>A-Star (A*) algorithm is implemented to calculate path costs across a synthetic road graph, providing the optimization engine with realistic ETA/Risk inputs.</p>
+
+    <h2>3. Faculty Key Takeaways</h2>
+    <p>Emphasize <strong>modularity</strong> and <strong>testability</strong>. Mention that the system is <strong>LLM-agnostic</strong>—the intelligence is rooted in your agents and algorithms, not just calling a third-party API.</p>
+</body>
+</html>
